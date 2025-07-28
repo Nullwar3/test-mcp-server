@@ -49,33 +49,30 @@ server.tool("create-user", "Create a new user in the database", {
     }
 )
 
-server.tool("list-users", "List all users in the databse", {}, {
-    openWorldHint: true,
-    destructiveHint: false,
-    idempotentHint: true,
-    readOnlyHint: true,
-    title: "List data of all users in the database",
-    description: "Lists the data of all users registered in the database",
-}, async(params) => {
-    try {
-        const users = await listUsers()
+server.resource(
+    "users",
+    "users://all",
+    {
+        description: "Get all users data from database",
+        title: "Users",
+        mimeType: "application/json",
+    },
+    async uri => {
+        const users = await import("./data/users.json", {
+            with: { type: "json" }
+        }).then(m => m.default)
+
         return {
-            content: [
+            contents: [
                 {
-                    type: "text",
-                    text: `${users}`
-                }
-            ]
-        }
-    } catch {
-        return {
-            content: [{
-                type: "text",
-                text: "Failed listing the user"
-            }]
+                    uri: uri.href,
+                    text: JSON.stringify(users),
+                    mimeType: "application/json",
+                },
+            ],
         }
     }
-})
+)
 
 async function listUsers() {
     const users = await import ("./data/users.json", {
