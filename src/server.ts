@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 //import { StreamableHTTPServerTransport  } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -29,12 +29,12 @@ server.tool("create-user", "Create a new user in the database", {
     readOnlyHint: false,
     title: "Create a new user in the database",
     description: "Create a new user in the database",
-}, async(params) => {
+}, async (params) => {
     try {
         const id = await createUser(params)
         return {
             content: [
-                {type:"text", text: `User ${id} created successfully`}
+                { type: "text", text: `User ${id} created successfully` }
             ]
         }
 
@@ -45,8 +45,8 @@ server.tool("create-user", "Create a new user in the database", {
                 text: "Error creating user"
             }]
         }
-        }
     }
+}
 )
 
 server.resource(
@@ -74,9 +74,44 @@ server.resource(
     }
 )
 
+server.resource("user-details", new ResourceTemplate("users://{userId}/profile", { list: undefined }), {
+    description: "Get a user's details from the database",
+    title: "User Details",
+    mimeType: "application/json",
+},
+    async (uri, {userId}) => {
+        const users = await import("./data/users.json", {
+            with: { type: "json" }
+        }).then(m => m.default)
+
+        const user = users.find(u => u.id === parseInt(userId as string))
+
+        if (user == null) {
+            return {
+                contents: [
+                    {
+                        uri: uri.href,
+                        text: JSON.stringify({ error: "User not found" }),
+                        mimeType: "application/json",
+                    }
+                ]
+            }
+        }
+
+        return {
+            contents: [
+                {
+                    uri: uri.href,
+                    text: JSON.stringify(user),
+                    mimeType: "application/json",
+                },
+            ],
+        }
+    })
+
 async function listUsers() {
-    const users = await import ("./data/users.json", {
-        with: {type: "json"}
+    const users = await import("./data/users.json", {
+        with: { type: "json" }
     }).then(m => m.default)
 
     return JSON.stringify(users)
@@ -94,7 +129,7 @@ async function createUser(user: {
 
     const id = users.length + 1
 
-    users.push({id, ...user})
+    users.push({ id, ...user })
 
     fs.writeFile("./src/data/users.json", JSON.stringify(users, null, 2))
 
@@ -103,7 +138,7 @@ async function createUser(user: {
 
 async function main() {
 
-    
+
     const transport = new StdioServerTransport()
     await server.connect(transport)
 }
