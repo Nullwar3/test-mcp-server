@@ -50,9 +50,7 @@ server.tool("create-user", "Create a new user in the database", {
 }
 )
 
-server.resource(
-    "users",
-    "users://all",
+server.resource("users", "users://all",
     {
         description: "Get all users data from database",
         title: "Users",
@@ -126,9 +124,7 @@ server.prompt("generate-fake-user", "Generate a fake user based on a given name"
     }
 })
 
-server.tool(
-    "create-random-user",
-    "Create a random user with fake data",
+server.tool("create-random-user", "Create a random user with fake data",
     {
         title: "Create Random User",
         readOnlyHint: false,
