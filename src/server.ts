@@ -79,7 +79,7 @@ server.resource("user-details", new ResourceTemplate("users://{userId}/profile",
     title: "User Details",
     mimeType: "application/json",
 },
-    async (uri, {userId}) => {
+    async (uri, { userId }) => {
         const users = await import("./data/users.json", {
             with: { type: "json" }
         }).then(m => m.default)
@@ -108,6 +108,22 @@ server.resource("user-details", new ResourceTemplate("users://{userId}/profile",
             ],
         }
     })
+
+server.prompt("generate-fake-user", "Generate a fake user based on a given name", {
+    name: z.string()
+}, ({ name }) => {
+    return {
+        messages: [
+            {
+                role: "user",
+                content: {
+                    type: "text",
+                    text: `Generate a fake user with the name ${name}. The user should have a realistic email, address, and phone number.`,
+                }
+            }
+        ]
+    }
+})
 
 async function listUsers() {
     const users = await import("./data/users.json", {
